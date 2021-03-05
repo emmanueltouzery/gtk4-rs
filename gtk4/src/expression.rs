@@ -389,7 +389,7 @@ impl ConstantExpression {
     }
 
     #[doc(alias = "gtk_constant_expression_new_for_value")]
-    pub fn new_for_value(value: &Value) -> Self {
+    pub fn for_value(value: &Value) -> Self {
         skip_assert_initialized!();
         unsafe {
             from_glib_full(ffi::gtk_constant_expression_new_for_value(
@@ -405,5 +405,47 @@ impl ConstantExpression {
                 self.to_glib_none().0,
             ))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use glib::StaticType;
+
+    use super::*;
+
+    #[test]
+    fn test_pspec_expression() {
+        crate::init().unwrap();
+
+        let _pspec = glib::ParamSpec::expression(
+            "expression",
+            "Expression",
+            "Some Expression",
+            glib::ParamFlags::CONSTRUCT_ONLY | glib::ParamFlags::READABLE,
+        );
+    }
+
+    #[test]
+    fn test_property_expression() {
+        crate::init().unwrap();
+        let expr =
+            PropertyExpression::new(crate::FontChooser::static_type(), NONE_EXPRESSION, "font");
+    }
+
+    #[test]
+    fn test_object_expression() {
+        crate::init().unwrap();
+        let obj = crate::IconTheme::new();
+        let expr = ObjectExpression::new(&obj);
+        assert_eq!(expr.get_object().unwrap(), obj);
+    }
+
+    #[test]
+    fn test_constant_expression() {
+        let expr1 = ConstantExpression::new(&23);
+        assert_eq!(expr1.get_value().get_some::<i32>().unwrap(), 23);
+        let expr2 = ConstantExpression::for_value(&"hello".to_value());
+        assert_eq!(expr2.get_value().get::<String>().unwrap().unwrap(), "hello");
     }
 }
